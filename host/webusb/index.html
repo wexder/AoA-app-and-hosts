@@ -43,7 +43,10 @@
 		 	{vendorId: 0x18d1, productId: 0x2D02},
 		 	{vendorId: 0x18d1, productId: 0x2D03},
 		 	{vendorId: 0x18d1, productId: 0x2D04},
-		 	{vendorId: 0x18d1, productId: 0x2D05}
+		 	{vendorId: 0x18d1, productId: 0x2D05},
+		 	{vendorId: 0x18d1, productId: 0x4ee7},
+		 	{vendorId: 0x17ef, productId: 0x201c},
+		 	{vendorId: 0x17ef, productId: 0x7e7c}
 	 	]})
 	 .then(usbDevice => {
 		  console.log("Product name: " + usbDevice.productName);
@@ -76,7 +79,6 @@
  }
 
 function checkProtocol(usbDevice) {
-	if (usbDevice.configuration === null)
     	usbDevice.selectConfiguration(1).then(function(){
 	    usbDevice.controlTransferIn(({
 	 		requestType: 'vendor',

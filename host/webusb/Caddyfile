@@ -1,0 +1,4 @@
+localhost {
+          tls internal
+          file_server
+}

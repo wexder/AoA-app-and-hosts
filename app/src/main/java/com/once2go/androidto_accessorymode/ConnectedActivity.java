@@ -1,5 +1,8 @@
 package com.once2go.androidto_accessorymode;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+import static android.app.PendingIntent.FLAG_MUTABLE;
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,6 +12,7 @@ import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -30,6 +34,7 @@ public abstract class ConnectedActivity extends AppCompatActivity {
      */
     private ParcelFileDescriptor fileDescriptor;
     private FileDescriptor fd;
+    private UsbAccessory usbAccessory;
     /**
      * ----------------------------------
      */
@@ -46,7 +51,8 @@ public abstract class ConnectedActivity extends AppCompatActivity {
             Toast.makeText(this, "Something wen wrong! Try to reconnect.", Toast.LENGTH_SHORT).show();
             finish();
         }
-        prepareToConnect(getIntent(), accessory);
+        this.usbAccessory = accessory;
+        prepareToConnect(getIntent());
     }
 
     private final BroadcastReceiver mAccessoryPermissionReceiver = new BroadcastReceiver() {
@@ -56,22 +62,28 @@ public abstract class ConnectedActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-            UsbAccessory accessory = (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-            prepareToConnect(intent, accessory);
+
+            prepareToConnect(intent);
         }
     };
 
-    private void prepareToConnect(Intent intent, UsbAccessory accessory) {
+    private void prepareToConnect(Intent intent) {
+        Log.i("m", "Acc "+ usbAccessory + "  " + intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false));
+        if (usbAccessory == null){
+            finish();
+            return;
+        }
         UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         if (!intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
             PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0,
-                    new Intent(ACTION_USB_PERMISSION), 0);
+                    new Intent(ACTION_USB_PERMISSION), FLAG_MUTABLE);
             IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
             filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
             registerReceiver(mAccessoryPermissionReceiver, filter);
-            usbManager.requestPermission(accessory, permissionIntent);
+            usbManager.requestPermission(usbAccessory, permissionIntent);
         } else {
-            fileDescriptor = usbManager.openAccessory(accessory);
+            fileDescriptor = usbManager.openAccessory(usbAccessory);
+            Log.i("FUCK", "FCUK "+ fileDescriptor);
             if (fileDescriptor == null) {
                 finish();
                 return;
